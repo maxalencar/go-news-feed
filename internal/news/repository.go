@@ -2,13 +2,14 @@ package news
 
 import (
 	"context"
-	"go-news-feed/pkg/model"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+
+	"go-news-feed/pkg/model"
 )
 
 const (
