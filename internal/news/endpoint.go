@@ -3,7 +3,6 @@ package news
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -54,8 +53,6 @@ func (e endpoint) find(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to marshal request body: %v", err), http.StatusBadRequest)
 		return
 	}
-
-	log.Printf("find request: %s", data)
 
 	// Decode request body into a new object
 	var fr model.FindRequest
