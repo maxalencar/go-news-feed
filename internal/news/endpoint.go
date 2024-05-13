@@ -83,13 +83,7 @@ func (e endpoint) find(w http.ResponseWriter, r *http.Request) {
 }
 
 func (e endpoint) load(w http.ResponseWriter, r *http.Request) {
-	feedURL := r.URL.Query().Get("feedUrl")
-	if feedURL == "" {
-		http.Error(w, "feedUrl is required", http.StatusBadRequest)
-		return
-	}
-
-	response, err := e.service.Load(r.Context(), feedURL)
+	response, err := e.service.Load(r.Context(), r.URL.Query().Get("feedUrl"))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to load news: %v", err), http.StatusInternalServerError)
 		return

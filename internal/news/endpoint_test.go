@@ -77,7 +77,6 @@ func (suite *TestSuite) TestFind() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/find", reqBody)
-			r.Header.Add("Content-Type", "application/json")
 
 			suite.router.ServeHTTP(w, r)
 
@@ -141,7 +140,7 @@ func (suite *TestSuite) TestLoad() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("%s?feedUrl=%s", "/load", tc.given), nil)
-			r.Header.Add("Content-Type", "application/json")
+			// r.Header.Add("Content-Type", "application/json")
 
 			suite.router.ServeHTTP(w, r)
 
