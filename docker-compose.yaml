@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   news:
     build: ./
@@ -10,6 +9,8 @@ services:
       MONGO_DATABASE: news
       MONGO_URI: mongodb://root:example@mongo:27017
       PORT: 8080
+    links:
+      - mongo
     depends_on:
       - mongo
   mongo:
@@ -25,6 +26,8 @@ services:
     restart: always
     ports:
       - 8081:8081
+    links:
+      - mongo
     depends_on:
       - mongo
     environment:

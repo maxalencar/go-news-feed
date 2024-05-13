@@ -150,7 +150,7 @@ Scripts to perform various build, install, analysis, etc operations. (for this e
 
 ## Server
 
-[Echo](https://echo.labstack.com/) High performance, extensible, minimalist Go web framework that provides an optmized router, handy built-in middlewares and data binding, etc.
+It uses the standard HTTP request multiplexer.
 
 ### Running the server
     go run cmd/news/main.go

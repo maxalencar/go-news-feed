@@ -17,7 +17,7 @@ type MongoConfig struct {
 }
 
 type ServerConfig struct {
-	Port string `envconfig:"PORT"`
+	Port int `envconfig:"PORT"`
 }
 
 func newConfig() (Config, error) {
