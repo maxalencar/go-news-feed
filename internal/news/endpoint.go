@@ -76,7 +76,10 @@ func (e endpoint) find(w http.ResponseWriter, r *http.Request) {
 
 	// Encode object as JSON and write to response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, fmt.Sprintf("failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (e endpoint) load(w http.ResponseWriter, r *http.Request) {
@@ -94,5 +97,8 @@ func (e endpoint) load(w http.ResponseWriter, r *http.Request) {
 
 	// Encode object as JSON and write to response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, fmt.Sprintf("failed to encode response: %v", err), http.StatusInternalServerError)
+		return
+	}
 }

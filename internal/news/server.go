@@ -43,7 +43,7 @@ func (s *Server) Init() error {
 func (s *Server) Start() error {
 	// Start HTTP server
 	addr := fmt.Sprintf(":%d", s.config.Server.Port)
-	log.Printf("Server listening on port %d...\n", s.config.Server.Port)
+	log.Printf("server listening on port %d...\n", s.config.Server.Port)
 
 	return http.ListenAndServe(addr, s.mux)
 }
