@@ -48,7 +48,7 @@ func (s *Server) Start() error {
 
 	server := &http.Server{
 		Addr:              addr,
-		ReadHeaderTimeout: 3 * time.Second,
+		ReadHeaderTimeout: 10 * time.Second,
 		Handler:           s.mux,
 	}
 
