@@ -1,63 +1,101 @@
 package news
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/go-playground/validator/v10"
 
 	"go-news-feed/pkg/model"
 )
 
 type endpoint struct {
-	service Service
+	service   Service
+	validator *validator.Validate
 }
 
 // newEndpoint - constructor
 func newEndpoint(service Service) *endpoint {
 	return &endpoint{
-		service: service,
+		service:   service,
+		validator: validator.New(),
 	}
 }
 
-func (e *endpoint) init() *echo.Echo {
-	// Echo instance
-	ei := echo.New()
-
-	// Middlewares
-	ei.Use(middleware.Logger())
-	ei.Use(middleware.Recover())
-	ei.Use(middleware.Secure())
-
-	// Custom middleware to sanitize request
-	ei.Use(Sanitize())
+func (e *endpoint) init() *http.ServeMux {
+	// Initialize HTTP request multiplexer
+	mux := http.NewServeMux()
 
 	// Routes
-	ei.GET("/find", e.find)
-	ei.GET("/load", e.load)
+	mux.HandleFunc("GET /find", e.find)
+	mux.HandleFunc("GET /load", e.load)
 
-	return ei
+	return mux
 }
 
-func (e endpoint) find(c echo.Context) error {
+func (e endpoint) find(w http.ResponseWriter, r *http.Request) {
+	// Parse request body
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, fmt.Sprintf("failed to parse request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Transformation from map[string][]string to map[string]string:
+	m := map[string]string{}
+	for k, v := range r.Form {
+		m[k] = v[0]
+	}
+
+	// Marshal request body
+	data, err := json.Marshal(m)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to marshal request body: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("find request: %s", data)
+
+	// Decode request body into a new object
 	var fr model.FindRequest
-	if err := c.Bind(&fr); err != nil {
-		return echo.ErrBadRequest
+	if err := json.Unmarshal(data, &fr); err != nil {
+		http.Error(w, fmt.Sprintf("failed to decode request body: %v", err), http.StatusBadRequest)
+		return
 	}
 
-	response, err := e.service.Find(c.Request().Context(), fr)
+	// Validate the request
+	if err := e.validator.Struct(fr); err != nil {
+		http.Error(w, fmt.Sprintf("invalid request: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Find
+	response, err := e.service.Find(r.Context(), fr)
 	if err != nil {
-		return err
+		http.Error(w, fmt.Sprintf("failed to find news: %v", err), http.StatusInternalServerError)
+		return
 	}
 
-	return c.JSON(http.StatusOK, response)
+	// Encode object as JSON and write to response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
-func (e endpoint) load(c echo.Context) error {
-	response, err := e.service.Load(c.Request().Context(), c.QueryParam("feedUrl"))
-	if err != nil {
-		return err
+func (e endpoint) load(w http.ResponseWriter, r *http.Request) {
+	feedURL := r.URL.Query().Get("feedUrl")
+	if feedURL == "" {
+		http.Error(w, "feedUrl is required", http.StatusBadRequest)
+		return
 	}
 
-	return c.JSON(http.StatusOK, response)
+	response, err := e.service.Load(r.Context(), feedURL)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to load news: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode object as JSON and write to response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

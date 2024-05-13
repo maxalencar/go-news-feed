@@ -3,12 +3,12 @@ package news
 import (
 	"context"
 	"fmt"
-
-	"github.com/labstack/echo/v4"
+	"log"
+	"net/http"
 )
 
 type Server struct {
-	echo   *echo.Echo
+	mux    *http.ServeMux
 	config Config
 }
 
@@ -35,11 +35,15 @@ func (s *Server) Init() error {
 	service := newService(repository)
 	endpoint := newEndpoint(service)
 
-	s.echo = endpoint.init()
+	s.mux = endpoint.init()
 
 	return nil
 }
 
 func (s *Server) Start() error {
-	return s.echo.Start(fmt.Sprintf(":%s", s.config.Server.Port))
+	// Start HTTP server
+	addr := fmt.Sprintf(":%d", s.config.Server.Port)
+	log.Printf("Server listening on port %d...\n", s.config.Server.Port)
+
+	return http.ListenAndServe(addr, s.mux)
 }

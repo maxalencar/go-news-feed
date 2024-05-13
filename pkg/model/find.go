@@ -1,12 +1,12 @@
 package model
 
 type FindRequest struct {
-	Category string `json:"category,omitempty" query:"category"`
-	Provider string `json:"provider,omitempty" query:"provider"`
-	Limit    int    `json:"limit,omitempty" query:"limit"`
-	Page     int    `json:"page,omitempty" query:"page"`
-	Sort     string `json:"sort,omitempty" query:"sort"`
-	Order    string `json:"order,omitempty" query:"order"`
+	Category string `json:"category,omitempty"`
+	Provider string `json:"provider,omitempty"`
+	Limit    int    `json:"limit,omitempty"`
+	Page     int    `json:"page,omitempty"`
+	Sort     string `json:"sort,omitempty"`
+	Order    string `json:"order,omitempty"`
 }
 
 type FindResponse struct {
