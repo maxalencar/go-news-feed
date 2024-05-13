@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -45,5 +46,11 @@ func (s *Server) Start() error {
 	addr := fmt.Sprintf(":%d", s.config.Server.Port)
 	log.Printf("server listening on port %d...\n", s.config.Server.Port)
 
-	return http.ListenAndServe(addr, s.mux)
+	server := &http.Server{
+		Addr:              addr,
+		ReadHeaderTimeout: 3 * time.Second,
+		Handler:           s.mux,
+	}
+
+	return server.ListenAndServe()
 }
