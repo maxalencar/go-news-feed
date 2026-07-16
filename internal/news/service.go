@@ -107,14 +107,6 @@ func (s *service) saveArticles(ctx context.Context, articles []model.Article) er
 	return nil
 }
 
-// validateArticle is no longer needed with bulk upsert approach.
-// Validation is handled by MongoDB's upsert functionality.
-func (s *service) validateArticle(ctx context.Context, article model.Article) error {
-	// With bulk upsert, validation is handled at the database level.
-	// This function remains for compatibility but does nothing.
-	return nil
-}
-
 // getSources from a feedURL
 // it returns default sources if feedURL is not provided or not found
 func (s *service) getSources(feedURL string) []model.Source {
