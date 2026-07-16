@@ -32,7 +32,7 @@ func (suite *TestSuite) SetupTest() {
 	suite.article = model.Article{
 		ID:           "test id",
 		Title:        "test title",
-		Descriptiopn: "test description",
+		Description:  "test description",
 		Link:         "test link",
 	}
 }

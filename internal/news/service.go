@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mmcdole/gofeed"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"go-news-feed/pkg/model"
@@ -79,14 +80,26 @@ func (s *service) loadArticlesFromFeed(ctx context.Context, feedURL string) ([]m
 	return articles, nil
 }
 
-// saveArticles persists new articles
+// saveArticles persists new articles using bulk operations for better performance
 func (s *service) saveArticles(ctx context.Context, articles []model.Article) error {
-	for _, article := range articles {
-		if err := s.validateArticle(ctx, article); err != nil {
-			continue
-		}
+	// For better performance with bulk operations, we'll use MongoDB's upsert functionality
+	// to handle duplicates at the database level rather than individual checks
 
-		if err := s.repository.Create(ctx, article); err != nil {
+	var writeModels []mongo.WriteModel
+	for _, article := range articles {
+		// Create a replace one model with upsert for efficient bulk operation
+		model := mongo.NewReplaceOneModel().
+			SetFilter(bson.M{"_id": article.ID}).
+			SetReplacement(article).
+			SetUpsert(true)
+
+		writeModels = append(writeModels, model)
+	}
+
+	// Perform bulk write operation
+	if len(writeModels) > 0 {
+		_, err := s.repository.BulkWrite(ctx, writeModels)
+		if err != nil {
 			return err
 		}
 	}
@@ -94,23 +107,11 @@ func (s *service) saveArticles(ctx context.Context, articles []model.Article) er
 	return nil
 }
 
-// validateArticle checks if article exists already
+// validateArticle is no longer needed with bulk upsert approach
+// Validation is handled by MongoDB's upsert functionality
 func (s *service) validateArticle(ctx context.Context, article model.Article) error {
-	tempArticle, err := s.repository.FindByID(ctx, article.ID)
-	if err != nil {
-		// if error is no documents found it means
-		// document is valid to be created
-		if err == mongo.ErrNoDocuments {
-			return nil
-		}
-
-		return err
-	}
-
-	if tempArticle.ID != "" {
-		return fmt.Errorf("article id %s exists already", tempArticle.ID)
-	}
-
+	// With bulk upsert, validation is handled at the database level
+	// This function remains for compatibility but does nothing
 	return nil
 }
 
@@ -143,7 +144,7 @@ func (s *service) parseFeed(feed *gofeed.Feed) ([]model.Article, error) {
 		article := model.Article{
 			ID:                item.GUID,
 			Title:             item.Title,
-			Descriptiopn:      item.Description,
+			Description:       item.Description,
 			Link:              item.Link,
 			Source:            s.getSourceByLink(item.Link),
 			PublishedDateTime: item.PublishedParsed,

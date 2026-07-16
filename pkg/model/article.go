@@ -7,7 +7,7 @@ type Articles []Article
 type Article struct {
 	ID                string     `json:"id,omitempty" bson:"_id,omitempty"`
 	Title             string     `json:"title,omitempty" bson:"title,omitempty"`
-	Descriptiopn      string     `json:"description,omitempty" bson:"description,omitempty"`
+	Description       string     `json:"description,omitempty" bson:"description,omitempty"`
 	Link              string     `json:"link,omitempty" bson:"link,omitempty"`
 	Source            Source     `json:"source,omitempty" bson:"source,omitempty"`
 	PublishedDateTime *time.Time `json:"publishedDateTime,omitempty" bson:"publishedDateTime,omitempty"`

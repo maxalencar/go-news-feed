@@ -24,6 +24,7 @@ type Repository interface {
 	FindByID(ctx context.Context, id string) (model.Article, error)
 	Find(ctx context.Context, fr model.FindRequest) (model.FindResponse, error)
 	Create(ctx context.Context, article model.Article) error
+	BulkWrite(ctx context.Context, models []mongo.WriteModel) (*mongo.BulkWriteResult, error)
 }
 
 type repository struct {
@@ -98,15 +99,28 @@ func (r repository) Create(ctx context.Context, article model.Article) error {
 	return nil
 }
 
+func (r repository) BulkWrite(ctx context.Context, models []mongo.WriteModel) (*mongo.BulkWriteResult, error) {
+	result, err := r.collection.BulkWrite(ctx, models)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (r repository) aggregate(ctx context.Context, pipeline mongo.Pipeline, opts ...*options.AggregateOptions) (model.FindResponse, error) {
 	cursor, err := r.collection.Aggregate(ctx, pipeline, opts...)
 	if err != nil {
 		return model.FindResponse{}, err
 	}
 
-	response := make([]model.FindResponse, 0)
+	var response []model.FindResponse
 	if err := cursor.All(ctx, &response); err != nil {
 		return model.FindResponse{}, err
+	}
+
+	if len(response) == 0 {
+		return model.FindResponse{}, nil
 	}
 
 	return response[0], nil

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 
@@ -41,23 +42,32 @@ func (e endpoint) find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Transformation from map[string][]string to map[string]string:
-	m := map[string]string{}
-	for k, v := range r.Form {
-		m[k] = v[0]
-	}
-
-	// Marshal request body
-	data, err := json.Marshal(m)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to marshal request body: %v", err), http.StatusBadRequest)
-		return
-	}
-
-	// Decode request body into a new object
+	// Direct form binding to FindRequest struct
 	var fr model.FindRequest
-	if err := json.Unmarshal(data, &fr); err != nil {
-		http.Error(w, fmt.Sprintf("failed to decode request body: %v", err), http.StatusBadRequest)
+
+	// Handle limit parameter
+	if limitStr := r.FormValue("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			fr.Limit = limit
+		}
+	}
+
+	// Handle page parameter
+	if pageStr := r.FormValue("page"); pageStr != "" {
+		if page, err := strconv.Atoi(pageStr); err == nil {
+			fr.Page = page
+		}
+	}
+
+	// Handle other parameters directly from form values
+	fr.Category = r.FormValue("category")
+	fr.Provider = r.FormValue("provider")
+	fr.Sort = r.FormValue("sort")
+	fr.Order = r.FormValue("order")
+
+	// Validate the request
+	if err := e.validator.Struct(fr); err != nil {
+		http.Error(w, fmt.Sprintf("invalid request: %v", err), http.StatusBadRequest)
 		return
 	}
 
