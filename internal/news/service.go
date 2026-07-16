@@ -107,11 +107,11 @@ func (s *service) saveArticles(ctx context.Context, articles []model.Article) er
 	return nil
 }
 
-// validateArticle is no longer needed with bulk upsert approach
-// Validation is handled by MongoDB's upsert functionality
+// validateArticle is no longer needed with bulk upsert approach.
+// Validation is handled by MongoDB's upsert functionality.
 func (s *service) validateArticle(ctx context.Context, article model.Article) error {
-	// With bulk upsert, validation is handled at the database level
-	// This function remains for compatibility but does nothing
+	// With bulk upsert, validation is handled at the database level.
+	// This function remains for compatibility but does nothing.
 	return nil
 }
 
